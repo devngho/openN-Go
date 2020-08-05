@@ -3,12 +3,14 @@ package main
 import (
 	"./Router"
 	"./SettingHelper"
+	"./ThemeHelper"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	//Setting
 	SettingHelper.InitFolderFile()
+	ThemeHelper.InitStatic()
 	r := gin.Default()
 
 	//PingPong

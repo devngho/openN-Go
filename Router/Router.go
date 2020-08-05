@@ -2,7 +2,9 @@ package Router
 
 import (
 	"../DocumentHelper"
+	"../ThemeHelper"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,12 +31,15 @@ func OnRequest(c *gin.Context, reqType int8, wikiName string){
 		//Document Read
 		doc, err := DocumentHelper.Read(DocumentNamespace, DocumentName)
 		if err != nil{
-			c.String(404, "Not found")
+			c.String(http.StatusNotFound, "Not found")
 		}else {
-			c.String(200, doc.Name)
+			//Document Render
+			docHtml := ThemeHelper.DocumentHtml
+			docHtml = strings.ReplaceAll(docHtml, "${namespace}", doc.Namespace)
+			docHtml = strings.ReplaceAll(docHtml, "${name}", doc.Name)
+			docHtml = strings.ReplaceAll(docHtml, "${text}", doc.Text)
+			c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(docHtml))
 		}
-
-		//Document Render
 	}
 }
 
