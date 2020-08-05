@@ -19,7 +19,7 @@ const NewDocument = 5
 const DeleteDocument = 6
 const EditAclDocument = 7
 
-func OnRequest(c *gin.Context, reqType int8, wikiName string){
+func OnRequest(c *gin.Context, reqType int8) {
 	//Find type
 	switch reqType {
 	case WatchDocument:
@@ -31,7 +31,10 @@ func OnRequest(c *gin.Context, reqType int8, wikiName string){
 		//Document Read
 		doc, err := DocumentHelper.Read(DocumentNamespace, DocumentName)
 		if err != nil{
-			c.String(http.StatusNotFound, "Not found")
+			docHtml := ThemeHelper.NotFoundDocumentHtml
+			docHtml = strings.ReplaceAll(docHtml, "${namespace}", DocumentNamespace)
+			docHtml = strings.ReplaceAll(docHtml, "${name}", DocumentName)
+			c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(docHtml))
 		}else {
 			//Document Render
 			docHtml := ThemeHelper.DocumentHtml
@@ -44,10 +47,14 @@ func OnRequest(c *gin.Context, reqType int8, wikiName string){
 }
 
 //Registry Route
-func Setup(r *gin.Engine, wikiName string){
+func Setup(r *gin.Engine, wikiName string, mainPage string){
 	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
 	r.GET("/w/:document", func(context *gin.Context) {
-		OnRequest(context, WatchDocument, wikiName)
+		OnRequest(context, WatchDocument)
+	})
+	r.GET("/", func(context *gin.Context) {
+		context.Redirect(http.StatusPermanentRedirect, "/w/"+wikiName+":"+mainPage)
 	})
 	r.Static("/theme/",filepath.Join(dir, "theme"))
+	r.StaticFile("/favicon.ico", filepath.Join(dir, "theme", "favicon.ico"))
 }

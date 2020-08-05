@@ -19,6 +19,6 @@ func main() {
 	})
 
 	//Boot server
-	Router.Setup(r, SettingHelper.ReadSetting("wiki", "name"))
+	Router.Setup(r, SettingHelper.ReadSetting("wiki", "name"), SettingHelper.ReadSetting("wiki", "start_page"))
 	r.Run(":80")
 }

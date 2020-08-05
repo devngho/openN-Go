@@ -9,9 +9,9 @@ import (
 	"strings"
 )
 
-var wikiName string
-var wikiNext string
-var licenseHtml string
+var WikiName string
+var WikiNext string
+var LicenseHtml string
 var (
 	DocumentHtml = ""
 	DocumentAclBlockHtml = ""
@@ -33,9 +33,9 @@ func InitStatic()  {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	IOHelper.ErrLog(err)
 
-	wikiName = SettingHelper.ReadSetting("wiki", "name")
-	wikiNext = SettingHelper.ReadSetting("wiki", "name_next")
-	licenseHtml = SettingHelper.ReadSetting("wiki", "license_html")
+	WikiName = SettingHelper.ReadSetting("wiki", "name")
+	WikiNext = SettingHelper.ReadSetting("wiki", "name_next")
+	LicenseHtml = SettingHelper.ReadSetting("wiki", "license_html")
 
 	registryFileToVar(filepath.Join(dir, "theme", "document.html"), &DocumentHtml)
 	registryFileToVar(filepath.Join(dir, "theme", "document_acl_block.html"), &DocumentAclBlockHtml)
@@ -56,8 +56,8 @@ func InitStatic()  {
 func registryFileToVar(file string, fileVar *string)  {
 	read, err := ioutil.ReadFile(file)
 	IOHelper.ErrLog(err)
-	result := strings.ReplaceAll(string(read), "${wiki}", wikiName)
-	result = strings.ReplaceAll(result, "${wikinext}", wikiNext)
-	result = strings.ReplaceAll(result, "${license}", licenseHtml)
+	result := strings.ReplaceAll(string(read), "${wiki}", WikiName)
+	result = strings.ReplaceAll(result, "${wikinext}", WikiNext)
+	result = strings.ReplaceAll(result, "${license}", LicenseHtml)
 	*fileVar = result
 }
