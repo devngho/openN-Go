@@ -1,10 +1,10 @@
 package main
 
 import (
-	"./Router"
-	"./SettingHelper"
-	"./ThemeHelper"
 	"github.com/gin-gonic/gin"
+	"openN-Go/Router"
+	"openN-Go/SettingHelper"
+	"openN-Go/ThemeHelper"
 )
 
 func main() {

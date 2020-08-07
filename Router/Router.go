@@ -1,10 +1,11 @@
 package Router
 
+
 import (
-	"../DocumentHelper"
-	"../ThemeHelper"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"openN-Go/DocumentHelper"
+	"openN-Go/ThemeHelper"
 	"os"
 	"path/filepath"
 	"strings"

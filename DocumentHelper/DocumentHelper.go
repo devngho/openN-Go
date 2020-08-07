@@ -1,9 +1,9 @@
 package DocumentHelper
 
 import (
-	"../IOHelper"
 	"encoding/json"
 	"log"
+	"openN-Go/IOHelper"
 	"os"
 	"path/filepath"
 )

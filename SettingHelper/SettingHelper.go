@@ -1,9 +1,9 @@
 package SettingHelper
 
 import (
-	"../IOHelper"
 	"gopkg.in/ini.v1"
 	"log"
+	"openN-Go/IOHelper"
 	"os"
 	"path/filepath"
 )
@@ -45,8 +45,14 @@ func InitFolderFile(){
 	if _, err := os.Stat(filepath.Join(dir, "db")); os.IsNotExist(err) {
 		//Create Folders
 		IOHelper.CreateFolder(filepath.Join(dir, "db"), 777)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "db", "old")); os.IsNotExist(err) {
+		//Create Folders
 		IOHelper.CreateFolder(filepath.Join(dir, "db", "old"), 777)
-		IOHelper.CreateFolder("theme", 777)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "theme")); os.IsNotExist(err) {
+		//Create Folders
+		IOHelper.CreateFolder(filepath.Join(dir, "theme"), 777)
 	}
 }
 
