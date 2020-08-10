@@ -1,7 +1,7 @@
 package Router
 
-
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"openN-Go/DocumentHelper"
@@ -42,6 +42,7 @@ func OnRequest(c *gin.Context, reqType int8) {
 			docHtml = strings.ReplaceAll(docHtml, "${namespace}", doc.Namespace)
 			docHtml = strings.ReplaceAll(docHtml, "${name}", doc.Name)
 			docHtml = strings.ReplaceAll(docHtml, "${text}", doc.Text)
+			docHtml = strings.ReplaceAll(docHtml, "${fname}", fmt.Sprintf("%s:%s", DocumentNamespace, DocumentName))
 			c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(docHtml))
 		}
 	}
@@ -52,6 +53,9 @@ func Setup(r *gin.Engine, wikiName string, mainPage string){
 	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
 	r.GET("/w/:document", func(context *gin.Context) {
 		OnRequest(context, WatchDocument)
+	})
+	r.GET("/license", func(context *gin.Context) {
+		context.Data(http.StatusOK, "text/html; charset=utf-8", []byte(ThemeHelper.LicenseHtmlFile))
 	})
 	r.GET("/", func(context *gin.Context) {
 		context.Redirect(http.StatusPermanentRedirect, "/w/"+wikiName+":"+mainPage)
