@@ -2,9 +2,9 @@ package ThemeHelper
 
 
 import (
+	"github.com/devngho/openN-Go/IOHelper"
+	"github.com/devngho/openN-Go/SettingHelper"
 	"io/ioutil"
-	"openN-Go/IOHelper"
-	"openN-Go/SettingHelper"
 	"os"
 	"path/filepath"
 	"strings"

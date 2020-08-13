@@ -2,10 +2,10 @@ package Router
 
 import (
 	"fmt"
+	"github.com/devngho/openN-Go/DocumentHelper"
+	"github.com/devngho/openN-Go/ThemeHelper"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"openN-Go/DocumentHelper"
-	"openN-Go/ThemeHelper"
 	"os"
 	"path/filepath"
 	"strings"

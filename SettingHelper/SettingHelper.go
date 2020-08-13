@@ -1,9 +1,9 @@
 package SettingHelper
 
 import (
+	"github.com/devngho/openN-Go/IOHelper"
 	"gopkg.in/ini.v1"
 	"log"
-	"openN-Go/IOHelper"
 	"os"
 	"path/filepath"
 )

@@ -1,4 +1,4 @@
-module openN-Go
+module github.com/devngho/openN-Go
 
 go 1.14
 

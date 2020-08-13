@@ -2,8 +2,7 @@ package DocumentHelper
 
 import (
 	"encoding/json"
-	"log"
-	"openN-Go/IOHelper"
+	"github.com/devngho/openN-Go/IOHelper"
 	"os"
 	"path/filepath"
 )
@@ -32,9 +31,7 @@ func (d Document) Delete() {
 }
 func Read(Namespace string, Name string) (Document, error) {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		log.Fatal(err)
-	}
+	IOHelper.ErrLog(err)
 	f, err := os.Open(filepath.Join(dir, "db", Namespace+"_"+Name+".json"))
 	if os.IsNotExist(err){
 		return Document{} ,err
