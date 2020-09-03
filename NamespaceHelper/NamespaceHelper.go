@@ -10,7 +10,7 @@ import (
 
 var Namespaces []Namespace
 type Namespace struct {
-	Name         string
+	Name         string `json:"name"`
 	NamespaceACL ACLHelper.ACL `json:"acl"`
 }
 

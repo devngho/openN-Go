@@ -1,14 +1,14 @@
 package Router
 
 import (
-	"fmt"
-	"github.com/devngho/openN-Go/DocumentHelper"
+	"github.com/devngho/openN-Go/MultiThreadingHelper"
 	"github.com/devngho/openN-Go/ThemeHelper"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 const WatchDocument = 0
@@ -30,21 +30,13 @@ func OnRequest(c *gin.Context, reqType int8) {
 		DocumentName := strings.Join(temp[1:], "")
 
 		//Document Read
-		doc, err := DocumentHelper.Read(DocumentNamespace, DocumentName)
-		if err != nil{
-			docHtml := ThemeHelper.NotFoundDocumentHtml
-			docHtml = strings.ReplaceAll(docHtml, "${namespace}", DocumentNamespace)
-			docHtml = strings.ReplaceAll(docHtml, "${name}", DocumentName)
-			c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(docHtml))
-		}else {
-			//Document Render
-			docHtml := ThemeHelper.DocumentHtml
-			docHtml = strings.ReplaceAll(docHtml, "${namespace}", doc.Namespace)
-			docHtml = strings.ReplaceAll(docHtml, "${name}", doc.Name)
-			docHtml = strings.ReplaceAll(docHtml, "${text}", doc.Text)
-			docHtml = strings.ReplaceAll(docHtml, "${fname}", fmt.Sprintf("%s:%s", DocumentNamespace, DocumentName))
-			c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(docHtml))
-		}
+		var res [2]string
+		var statusCode int
+		var waitGroup sync.WaitGroup
+		waitGroup.Add(1)
+		MultiThreadingHelper.DocumentReadRequests <- &MultiThreadingHelper.DocumentReadRequest{Name: DocumentName, Namespace: DocumentNamespace, Result: &res, StatusCode: &statusCode, WaitChannel: &waitGroup}
+		waitGroup.Wait()
+		c.Data(statusCode, res[0], []byte(res[1]))
 	}
 }
 
