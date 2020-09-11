@@ -38,6 +38,9 @@ func AclLoad(){
 }
 
 func AclAllow(a string, b string) bool{
+	if a == b{
+		return true
+	}
 	for _, e := range AclRoles[a]{
 		if e == b{
 			return true
