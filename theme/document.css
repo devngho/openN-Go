@@ -1,0 +1,17 @@
+nav {  
+    height: 30px;
+    padding: 1.25rem;
+    color: white;
+    background: rgb(154, 223, 52);
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+.title div,
+.title h1,
+.title button{
+    vertical-align: middle;
+}
+body{
+    background-color: gainsboro;
+}

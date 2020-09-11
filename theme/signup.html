@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" href="/theme/document.css">
+
+    <title>${wiki} - 회원가입</title>
+  </head>
+  <body>
+  <nav>
+      <div>
+          <ul style="list-style:none;margin:0;padding:0;">
+              <li style="margin:0;padding:0;border:0;float:left;">
+                  <img src="/theme/favicon.ico"/>
+                  <a href="/" style="color: black;">${wiki}</a>
+              </li>
+              <li style="margin: 0 0 0 0.5rem;padding:0;border:0;float:left;">
+                  <a href="#" data-toggle="dropdown" aria-expanded="false">
+                      <span class="hide-title" style="color: #fff;">도구</span>
+                  </a>
+                  <div role="menu" class="dropdown-menu">
+                      <a href="/license" class="dropdown-item">라이선스</a>
+                  </div>
+              </li>
+          </ul>
+      </div>
+  </nav>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+    <main>
+        <div style="max-width: 1500px;margin: 0.5rem auto 0px;background-color: white;">
+            <header class="title" style="margin-bottom: 3rem; margin-top: 0rem; margin-left: 1rem;float: right;">
+                <button onclick="location.href='/edit/main'" style="text-align: right;">편집</button>
+            </header>
+            <h1 style="text-align: left;"><a href="/w/main" style="color: black;"><span style="color: gainsboro;">${wiki}:</span>회원가입</a></h1>
+            <div style="margin-left: 1rem;margin-right: 1rem;margin-top: 3rem;">
+                <span>
+                    <div class="card">
+
+                    </div>
+                    <form action="/signup" method="post">
+                        <table>
+                            <tr class="form-group">
+                                <td>이메일 </td>
+                                <td><input type="text" name="id" class="form-control ${error}"></td>
+                            </tr>
+                            <tr class="form-group">
+                                <td>비밀번호 </td>
+                                <td><input type="password" name="password" class="form-control ${error}" pattern="^([a-z0-9_]){6,50}"></td>
+                            </tr>
+                            <span><b>가입 후 탈퇴는 불가능합니다.</b></span>
+                            <tr class="form-group">
+                                <td><input type="submit" value="가입"></td>
+                            </tr>
+                        </table>
+                    </form>
+                </span>
+            </div>
+        </div>
+        <footer>
+            <div style="background-color: white;margin: 0px;height: 8rem;text-align: right;">
+                <hr/>
+                <span style="margin-right: 1rem;">
+                    ${license}
+                </span>
+            </div>
+        </footer>
+    </main>
+  </body>
+</html>
