@@ -1,4 +1,4 @@
-package IOHelper
+package iohelper
 
 import (
 	"log"
