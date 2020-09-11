@@ -2,7 +2,6 @@ package userhelper
 
 import (
 	"encoding/json"
-	"github.com/devngho/openN-Go/aclhelper"
 	"github.com/devngho/openN-Go/iohelper"
 	"github.com/segmentio/ksuid"
 	"golang.org/x/crypto/openpgp/errors"
@@ -11,7 +10,7 @@ import (
 )
 
 type User struct {
-	Acl            aclhelper.ACLRole `json:"acl"`
+	Acl            string `json:"acl"`
 	Name           string `json:"name"`
 	PasswordHashed [64]byte `json:"password_hashed"`
 	Uid            string `json:"uid"`
@@ -43,7 +42,7 @@ func FindUserWithNamePwd(Name string, PwdHashed [64]byte) (User, error){
 
 func Signup(Name string, PasswordHashed [64]byte)  {
 	user := User{
-		Acl:            aclhelper.ACLRole{},
+		Acl:            "user",
 		Name:           Name,
 		PasswordHashed: PasswordHashed,
 		Uid: ksuid.New().String(),

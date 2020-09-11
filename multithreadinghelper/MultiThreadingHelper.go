@@ -2,6 +2,7 @@ package multithreadinghelper
 
 import (
 	"fmt"
+	"github.com/devngho/openN-Go/aclhelper"
 	"github.com/devngho/openN-Go/documenthelper"
 	"github.com/devngho/openN-Go/themehelper"
 	"net/http"
@@ -15,6 +16,7 @@ type DocumentReadRequest struct {
 	Result *[2]string
 	StatusCode *int
 	WaitChannel *sync.WaitGroup
+	Acl string
 }
 
 var DocumentReadRequests = make(chan *DocumentReadRequest)
@@ -37,13 +39,21 @@ func ComputeDocumentRequest(req *DocumentReadRequest)  {
 		*req.Result = [2]string{"text/html; charset=utf-8", docHtml}
 	}else {
 		//Document Render
-		docHtml := themehelper.DocumentHtml
-		docHtml = strings.ReplaceAll(docHtml, "${namespace}", doc.Namespace)
-		docHtml = strings.ReplaceAll(docHtml, "${name}", doc.Name)
-		docHtml = strings.ReplaceAll(docHtml, "${text}", doc.Text)
-		docHtml = strings.ReplaceAll(docHtml, "${fname}", fmt.Sprintf("%s:%s", req.Namespace, req.Name))
-		*req.StatusCode = http.StatusOK
-		*req.Result = [2]string{"text/html; charset=utf-8", docHtml}
+		if aclhelper.AclAllow(req.Acl, doc.Acl.Watch) {
+			docHtml := themehelper.DocumentHtml
+			docHtml = strings.ReplaceAll(docHtml, "${namespace}", doc.Namespace)
+			docHtml = strings.ReplaceAll(docHtml, "${name}", doc.Name)
+			docHtml = strings.ReplaceAll(docHtml, "${text}", doc.Text)
+			docHtml = strings.ReplaceAll(docHtml, "${fname}", fmt.Sprintf("%s:%s", req.Namespace, req.Name))
+			*req.StatusCode = http.StatusOK
+			*req.Result = [2]string{"text/html; charset=utf-8", docHtml}
+		}else{
+			docHtml := themehelper.DocumentAclBlockHtml
+			docHtml = strings.ReplaceAll(docHtml, "${namespace}", doc.Namespace)
+			docHtml = strings.ReplaceAll(docHtml, "${name}", doc.Name)
+			*req.StatusCode = http.StatusOK
+			*req.Result = [2]string{"text/html; charset=utf-8", docHtml}
+		}
 	}
 	req.WaitChannel.Done()
 }

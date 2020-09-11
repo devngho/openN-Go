@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"github.com/devngho/openN-Go/aclhelper"
 	"github.com/devngho/openN-Go/multithreadinghelper"
 	"github.com/devngho/openN-Go/themehelper"
 	"github.com/devngho/openN-Go/userhelper"
@@ -35,12 +36,27 @@ func OnRequest(c *gin.Context, reqType int8) {
 		DocumentNamespace := temp[0]
 		DocumentName := strings.Join(temp[1:], "")
 
+		//Get Acl
+		acl := "ip"
+		uid := session.Get("uid")
+		if uid != nil{
+			usr, err := userhelper.FindUserWithUid(fmt.Sprintf("%v", uid))
+			if err != nil{
+				session.Clear()
+				_ = session.Save()
+				c.Redirect(302, "/login")
+			}else{
+				acl = usr.Acl
+			}
+		}
+		fmt.Printf("ACL : %s\n",acl)
+
 		//Document Read
 		var res [2]string
 		var statusCode int
 		var waitGroup sync.WaitGroup
 		waitGroup.Add(1)
-		multithreadinghelper.DocumentReadRequests <- &multithreadinghelper.DocumentReadRequest{Name: DocumentName, Namespace: DocumentNamespace, Result: &res, StatusCode: &statusCode, WaitChannel: &waitGroup}
+		multithreadinghelper.DocumentReadRequests <- &multithreadinghelper.DocumentReadRequest{Name: DocumentName, Namespace: DocumentNamespace, Result: &res, StatusCode: &statusCode, WaitChannel: &waitGroup, Acl: acl}
 		waitGroup.Wait()
 		c.Data(statusCode, res[0], []byte(res[1]))
 	case LoginPost:
@@ -87,7 +103,7 @@ func Setup(r *gin.Engine, wikiName string, mainPage string){
 		uid := sessions.Default(context).Get("uid")
 		if uid != nil{
 			t, _ := userhelper.FindUserWithUid(fmt.Sprintf("%v", uid))
-			context.JSON(200, gin.H{"Acl": t.Acl.Name, "Includes": t.Acl.Include})
+			context.JSON(200, gin.H{"Acl": t.Acl, "Includes": aclhelper.AclRoles[t.Acl]})
 		}
 	})
 	r.Static("/theme/",filepath.Join(dir, "theme"))

@@ -79,7 +79,7 @@ func InitFolderFile(){
 		//Create User File
 		f3, _ := os.Create(filepath.Join(dir, "db", "user.json"))
 		defer f3.Close()
-		uaa := []userhelper.User{{Acl: aclhelper.ACLRole{Name: "admin", Include: []string{"ip", "user"}}, PasswordHashed: sha3.Sum512([]byte("openngo")), Name: "admin", Uid: ksuid.New().String()}}
+		uaa := []userhelper.User{{Acl: "admin", PasswordHashed: sha3.Sum512([]byte("openngo")), Name: "admin", Uid: ksuid.New().String()}}
 		enc3 := json.NewEncoder(f3)
 		enc3.SetIndent("", "  ")
 		_ = enc3.Encode(uaa)
