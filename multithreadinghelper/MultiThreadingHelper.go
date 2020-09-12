@@ -51,7 +51,10 @@ func ComputeDocumentRequest(req *DocumentReadRequest)  {
 			docHtml := themehelper.DocumentAclBlockHtml
 			docHtml = strings.ReplaceAll(docHtml, "${namespace}", doc.Namespace)
 			docHtml = strings.ReplaceAll(docHtml, "${name}", doc.Name)
-			*req.StatusCode = http.StatusOK
+			docHtml = strings.ReplaceAll(docHtml, "${watchacl}", doc.Acl.Watch)
+			docHtml = strings.ReplaceAll(docHtml, "${editacl}", doc.Acl.Edit)
+			docHtml = strings.ReplaceAll(docHtml, "${editaclacl}", doc.Acl.AclEdit)
+			*req.StatusCode = http.StatusForbidden
 			*req.Result = [2]string{"text/html; charset=utf-8", docHtml}
 		}
 	}

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/devngho/openN-Go/aclhelper"
 	"github.com/devngho/openN-Go/iohelper"
+	"github.com/devngho/openN-Go/namespacehelper"
 	"os"
 	"path/filepath"
 )
@@ -31,18 +32,14 @@ func Create(namespace string, name string, creater string) (Document, error) {
 	enc := json.NewEncoder(f)
 	enc.SetIndent("", "  ")
 	u := Document{Namespace: namespace, Name: name, Editor: creater, Version: 1, Text: "", Acl: aclhelper.ACL{
-		Watch:   "ip",
-		Edit:    "ip",
-		AclEdit: "admin",
+		UseNamespace: true,
 	}}
 	_ = enc.Encode(u)
 	_ = f.Close()
 	enc = json.NewEncoder(old)
 	enc.SetIndent("", "  ")
 	uo := []Document{{Namespace: namespace, Name: name, Editor: creater, Version: 1, Text: "", Acl: aclhelper.ACL{
-		Watch:   "ip",
-		Edit:    "ip",
-		AclEdit: "admin",
+		UseNamespace: true,
 	}}}
 	_ = enc.Encode(uo)
 	_ = f.Close()
@@ -60,5 +57,13 @@ func Read(Namespace string, Name string) (Document, error) {
 	err = dec.Decode(&u)
 	iohelper.ErrLog(err)
 	_ = f.Close()
+	if u.Acl.UseNamespace{
+		n, err := namespacehelper.Find(u.Namespace)
+		if err != nil{
+			return u, os.ErrInvalid
+		}else {
+			u.Acl = n.NamespaceACL
+		}
+	}
 	return u, err
 }

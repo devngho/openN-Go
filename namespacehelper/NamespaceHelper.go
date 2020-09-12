@@ -26,3 +26,12 @@ func ReadNamespaces()  {
 	iohelper.ErrLog(err)
 	_ = f.Close()
 }
+
+func Find(NamespaceName string) (Namespace, error) {
+	for _, e := range Namespaces{
+		if e.Name == NamespaceName{
+			return e, nil
+		}
+	}
+	return Namespace{}, os.ErrNotExist
+}

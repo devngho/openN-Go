@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/devngho/openN-Go/aclhelper"
 	"github.com/devngho/openN-Go/multithreadinghelper"
+	"github.com/devngho/openN-Go/settinghelper"
 	"github.com/devngho/openN-Go/themehelper"
 	"github.com/devngho/openN-Go/userhelper"
 	"github.com/gin-gonic/contrib/sessions"
@@ -35,7 +36,10 @@ func OnRequest(c *gin.Context, reqType int8) {
 		temp := strings.Split(c.Param("document"), ":")
 		DocumentNamespace := temp[0]
 		DocumentName := strings.Join(temp[1:], "")
-
+		if len(temp) == 1{
+			c.Redirect(302, fmt.Sprintf("%s:%s", settinghelper.ReadSetting("default", "namespace"), DocumentNamespace))
+			return
+		}
 		//Get Acl
 		acl := "ip"
 		uid := session.Get("uid")
@@ -49,7 +53,6 @@ func OnRequest(c *gin.Context, reqType int8) {
 				acl = usr.Acl
 			}
 		}
-		fmt.Printf("ACL : %s\n",acl)
 
 		//Document Read
 		var res [2]string

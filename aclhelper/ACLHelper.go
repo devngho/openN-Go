@@ -11,6 +11,7 @@ type ACL struct {
 	Watch string `json:"watch"`
 	Edit string `json:"edit"`
 	AclEdit string `json:"acl_edit"`
+	UseNamespace bool `json:"use_namespace"`
 }
 
 type ACLRole struct {
