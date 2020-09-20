@@ -1,12 +1,13 @@
 package documenthelper
 
 import (
-	"encoding/json"
+	"context"
 	"github.com/devngho/openN-Go/aclhelper"
 	"github.com/devngho/openN-Go/iohelper"
+	"github.com/devngho/openN-Go/mongohelper"
 	"github.com/devngho/openN-Go/namespacehelper"
+	"go.mongodb.org/mongo-driver/bson"
 	"os"
-	"path/filepath"
 )
 
 type Document struct {
@@ -18,6 +19,23 @@ type Document struct {
 	Version   int           `json:"version"`
 }
 
+type DocumentOld struct {
+	Namespace string        `json:"namespace"`
+	Name      string        `json:"name"`
+	Text      string        `json:"text"`
+	Acl       aclhelper.ACL `json:"acl"`
+	Editor    string        `json:"editor"`
+	Version   int           `json:"version"`
+	Action    string `json:"action"`
+}
+
+const (
+	DocumentEditAction = "edit"
+	DocumentAclEditAction = "acl_edit"
+	DocumentCreateAction = "create"
+	DocumentDeleteAction = "delete"
+)
+
 func (d Document) Edit(n string){
 	
 }
@@ -25,45 +43,29 @@ func (d Document) Delete() {
 
 }
 func Create(namespace string, name string, creater string) (Document, error) {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	_, err := mongohelper.Database.Collection("document").InsertOne(context.TODO(), Document{Namespace: namespace, Name: name, Editor: creater, Version: 1, Text: "", Acl: aclhelper.ACL{
+		UseNamespace: true,
+	}})
 	iohelper.ErrLog(err)
-	f := iohelper.CreateFile(filepath.Join(dir, "db", namespace+"_"+name+".json"))
-	old := iohelper.CreateFile(filepath.Join(dir, "db", "old", namespace+"_"+name+".json"))
-	enc := json.NewEncoder(f)
-	enc.SetIndent("", "  ")
-	u := Document{Namespace: namespace, Name: name, Editor: creater, Version: 1, Text: "", Acl: aclhelper.ACL{
+	_, err = mongohelper.Database.Collection("document_old").InsertOne(context.TODO(), bson.M{"namespace":namespace, "name":name, "data":[]DocumentOld{{Namespace: namespace, Name: name, Editor: creater, Version: 1, Action: DocumentCreateAction, Text: "", Acl: aclhelper.ACL{
 		UseNamespace: true,
-	}}
-	_ = enc.Encode(u)
-	_ = f.Close()
-	enc = json.NewEncoder(old)
-	enc.SetIndent("", "  ")
-	uo := []Document{{Namespace: namespace, Name: name, Editor: creater, Version: 1, Text: "", Acl: aclhelper.ACL{
-		UseNamespace: true,
-	}}}
-	_ = enc.Encode(uo)
-	_ = f.Close()
+	}}}})
+	iohelper.ErrLog(err)
+	u, _ := Read(namespace, name)
 	return u, err
 }
 func Read(Namespace string, Name string) (Document, error) {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	iohelper.ErrLog(err)
-	f, err := os.Open(filepath.Join(dir, "db", Namespace+"_"+Name+".json"))
-	if os.IsNotExist(err){
-		return Document{} ,err
-	}
-	dec := json.NewDecoder(f)
-	u := Document{}
-	err = dec.Decode(&u)
-	iohelper.ErrLog(err)
-	_ = f.Close()
+	var u Document
+	res := mongohelper.Database.Collection("document").FindOne(context.TODO(), bson.M{"namespace": Namespace,"name": Name})
+	iohelper.ErrLog(res.Err())
+	iohelper.ErrLog(res.Decode(&u))
 	if u.Acl.UseNamespace{
 		n, err := namespacehelper.Find(u.Namespace)
 		if err != nil{
 			return u, os.ErrInvalid
 		}else {
-			u.Acl = n.NamespaceACL
+			u.Acl = aclhelper.ACL{Delete: n.NamespaceACL.Delete, Edit: n.NamespaceACL.Edit, AclEdit: n.NamespaceACL.AclEdit, Watch: n.NamespaceACL.Watch, UseNamespace: false}
 		}
 	}
-	return u, err
+	return u, nil
 }

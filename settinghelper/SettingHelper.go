@@ -1,12 +1,14 @@
 package settinghelper
 
 import (
-	"encoding/json"
+	"context"
 	"github.com/devngho/openN-Go/aclhelper"
 	"github.com/devngho/openN-Go/iohelper"
+	"github.com/devngho/openN-Go/mongohelper"
 	"github.com/devngho/openN-Go/namespacehelper"
 	"github.com/devngho/openN-Go/userhelper"
 	"github.com/segmentio/ksuid"
+	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/crypto/sha3"
 	"gopkg.in/ini.v1"
 	"log"
@@ -51,6 +53,9 @@ func InitFolderFile(){
 			cfg.Section("wiki").Key("start_page").MustString("대문")
 			_, _ = cfg.NewSection("secret")
 			cfg.Section("secret").Key("key").MustString("SECRET")
+			_, _ = cfg.NewSection("db")
+			cfg.Section("db").Key("server").MustString("mongodb://localhost:27017")
+			cfg.Section("db").Key("database").MustString("wiki")
 			_ = cfg.SaveTo(filepath.Join(dir, "setting.ini"))
 		} else {
 			log.Fatal(err)
@@ -58,6 +63,7 @@ func InitFolderFile(){
 		}
 	}
 
+	/*
 	//Folder Exist Check
 	if _, err := os.Stat(filepath.Join(dir, "db")); os.IsNotExist(err) {
 		//Create Folder
@@ -65,7 +71,7 @@ func InitFolderFile(){
 		//Create Namespace File
 		f1, _ := os.Create(filepath.Join(dir, "db", "namespaces.json"))
 		defer f1.Close()
-		u := []namespacehelper.Namespace{{Name: "문서", NamespaceACL: aclhelper.ACL{AclEdit: "admin", Edit: "ip", Watch: "ip"}}}
+		u := []namespacehelper.Namespace{{Name: "문서", NamespaceACL: aclhelper.ACLNamespace{AclEdit: "admin", Edit: "ip", Watch: "ip", Create: "ip", Delete: "user"}}}
 		enc1 := json.NewEncoder(f1)
 		enc1.SetIndent("", "  ")
 		_ = enc1.Encode(u)
@@ -91,9 +97,20 @@ func InitFolderFile(){
 	if _, err := os.Stat(filepath.Join(dir, "theme")); os.IsNotExist(err) {
 		//Create Folder
 		iohelper.CreateFolder(filepath.Join(dir, "theme"), 777)
-	}
+	}*/
 }
 
+func InitData()  {
+	result := mongohelper.Database.Collection("user").FindOne(context.TODO(), bson.M{"name":"admin"})
+	if result.Err() != nil{
+		_, err := mongohelper.Database.Collection("user").InsertOne(context.TODO(), userhelper.User{Acl: "admin", PasswordHashed: sha3.Sum512([]byte("openngo")), Name: "admin", Uid: ksuid.New().String()})
+		iohelper.ErrLog(err)
+		_, err = mongohelper.Database.Collection("acl").InsertMany(context.TODO(), []interface{}{aclhelper.ACLRole{Name: "admin", Include: []string{"ip", "user"}}, aclhelper.ACLRole{Name: "user", Include: []string{"ip"}}, aclhelper.ACLRole{Name: "ip", Include: []string{}}})
+		iohelper.ErrLog(err)
+		_, err = mongohelper.Database.Collection("namespace").InsertOne(context.TODO(), namespacehelper.Namespace{Name: "문서", NamespaceACL: aclhelper.ACLNamespace{AclEdit: "admin", Edit: "ip", Watch: "ip", Create: "ip", Delete: "user"}})
+		iohelper.ErrLog(err)
+	}
+}
 //Read settings with section and key
 func ReadSetting(section string, key string) string {
 	return Setting.Section(section).Key(key).String()

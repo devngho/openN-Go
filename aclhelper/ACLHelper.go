@@ -1,16 +1,26 @@
 package aclhelper
 
 import (
-	"encoding/json"
+	"context"
 	"github.com/devngho/openN-Go/iohelper"
-	"os"
-	"path/filepath"
+	"github.com/devngho/openN-Go/mongohelper"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type ACL struct {
 	Watch string `json:"watch"`
 	Edit string `json:"edit"`
 	AclEdit string `json:"acl_edit"`
+	Delete string `json:"delete"`
+	UseNamespace bool `json:"use_namespace"`
+}
+
+type ACLNamespace struct {
+	Watch string `json:"watch"`
+	Edit string `json:"edit"`
+	AclEdit string `json:"acl_edit"`
+	Create string `json:"create"`
+	Delete string `json:"delete"`
 	UseNamespace bool `json:"use_namespace"`
 }
 
@@ -22,17 +32,11 @@ type ACLRole struct {
 var AclRoles = make(map[string][]string)
 
 func AclLoad(){
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	iohelper.ErrLog(err)
-	f, err := os.Open(filepath.Join(dir, "db", "acl.json"))
-	if os.IsNotExist(err){
-		iohelper.ErrLog(err)
-	}
-	dec := json.NewDecoder(f)
 	var tmp []ACLRole
-	err = dec.Decode(&tmp)
+	cur, err := mongohelper.Database.Collection("acl").Find(context.TODO(), bson.D{})
 	iohelper.ErrLog(err)
-	_ = f.Close()
+	err = cur.All(context.TODO(), &tmp)
+	iohelper.ErrLog(err)
 	for _, e := range tmp{
 		AclRoles[e.Name] = e.Include
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/devngho/openN-Go/aclhelper"
 	"github.com/devngho/openN-Go/documenthelper"
+	"github.com/devngho/openN-Go/namespacehelper"
 	"github.com/devngho/openN-Go/themehelper"
 	"net/http"
 	"strings"
@@ -19,17 +20,33 @@ type DocumentReadRequest struct {
 	Acl string
 }
 
+type DocumentCreateRequest struct {
+	Name string
+	Namespace string
+	Result *[2]string
+	StatusCode *int
+	UserName string
+	WaitChannel *sync.WaitGroup
+	Acl string
+}
+
 var DocumentReadRequests = make(chan *DocumentReadRequest)
+var DocumentCreateRequests = make(chan *DocumentCreateRequest)
 
 func InitGoroutine()  {
 	go func() {
 		for{
-			go ComputeDocumentRequest(<-DocumentReadRequests)
+			go ComputeDocumentReadRequest(<-DocumentReadRequests)
+		}
+	}()
+	go func() {
+		for{
+			go ComputeDocumentCreateRequest(<-DocumentCreateRequests)
 		}
 	}()
 }
 
-func ComputeDocumentRequest(req *DocumentReadRequest)  {
+func ComputeDocumentReadRequest(req *DocumentReadRequest)  {
 	doc, err := documenthelper.Read(req.Namespace, req.Name)
 	if err != nil{
 		docHtml := themehelper.NotFoundDocumentHtml
@@ -57,6 +74,25 @@ func ComputeDocumentRequest(req *DocumentReadRequest)  {
 			*req.StatusCode = http.StatusForbidden
 			*req.Result = [2]string{"text/html; charset=utf-8", docHtml}
 		}
+	}
+	req.WaitChannel.Done()
+}
+
+func ComputeDocumentCreateRequest(req *DocumentCreateRequest)  {
+	ns, _ := namespacehelper.Find(req.Namespace)
+	if aclhelper.AclAllow(req.Acl, ns.NamespaceACL.Create){
+		_, _ = documenthelper.Create(ns.Name, req.Name, req.UserName)
+		*req.StatusCode = http.StatusFound
+		*req.Result = [2]string{"text/html; charset=utf-8", fmt.Sprintf("/w/%s:%s", ns.Name, req.Name)}
+	}else{
+		docHtml := themehelper.DocumentAclBlockHtml
+		docHtml = strings.ReplaceAll(docHtml, "${namespace}", ns.Name)
+		docHtml = strings.ReplaceAll(docHtml, "${name}", req.Name)
+		docHtml = strings.ReplaceAll(docHtml, "${watchacl}", ns.NamespaceACL.Watch)
+		docHtml = strings.ReplaceAll(docHtml, "${editacl}", ns.NamespaceACL.Edit)
+		docHtml = strings.ReplaceAll(docHtml, "${editaclacl}", ns.NamespaceACL.AclEdit)
+		*req.StatusCode = http.StatusForbidden
+		*req.Result = [2]string{"text/html; charset=utf-8", docHtml}
 	}
 	req.WaitChannel.Done()
 }

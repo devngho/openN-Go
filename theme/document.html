@@ -37,7 +37,7 @@
     <main>
         <div style="max-width: 1500px;margin: 0.5rem auto 0px;background-color: white;">
             <header class="title" style="margin-bottom: 3rem; margin-top: 1rem; margin-left: 1rem;float: right;">
-                <button onclick="location.href= '/edit/' + location.pathname.split('/')[2] " style="text-align: right;margin-right: 1rem;" class="btn-info btn">편집</button>
+                <button onclick="location.href= '/edit/${namespace}:${name}'" style="text-align: right;margin-right: 1rem;" class="btn-info btn">편집</button>
                 ${login}
             </header>
             <h1 style="text-align: left;"><a href="#" style="color: #212529;;"><span style="color: gray;">${namespace}:</span>${name}</a></h1>

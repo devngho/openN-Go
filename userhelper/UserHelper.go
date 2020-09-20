@@ -1,12 +1,13 @@
 package userhelper
 
 import (
-	"encoding/json"
+	"context"
 	"github.com/devngho/openN-Go/iohelper"
+	"github.com/devngho/openN-Go/mongohelper"
 	"github.com/segmentio/ksuid"
+	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/crypto/openpgp/errors"
 	"os"
-	"path/filepath"
 )
 
 type User struct {
@@ -51,28 +52,20 @@ func Signup(Name string, PasswordHashed [64]byte)  {
 	SaveState()
 }
 
-func SaveState()  {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+func SaveState() {
+	_, err := mongohelper.Database.Collection("user").DeleteMany(context.TODO(), bson.D{})
 	iohelper.ErrLog(err)
-	f, err := os.Open(filepath.Join(dir, "db", "user.json"))
-	if os.IsNotExist(err){
-
+	b := make([]interface{}, len(Users))
+	for i := range Users {
+		b[i] = Users[i]
 	}
-	enc := json.NewEncoder(f)
-	err = enc.Encode(&Users)
+	_, err = mongohelper.Database.Collection("user").InsertMany(context.TODO(), b)
 	iohelper.ErrLog(err)
-	_ = f.Close()
 }
 
 func Load()  {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	cur, err := mongohelper.Database.Collection("user").Find(context.TODO(), bson.D{})
 	iohelper.ErrLog(err)
-	f, err := os.Open(filepath.Join(dir, "db", "user.json"))
-	if os.IsNotExist(err){
-
-	}
-	dec := json.NewDecoder(f)
-	err = dec.Decode(&Users)
+	err = cur.All(context.TODO(), &Users)
 	iohelper.ErrLog(err)
-	_ = f.Close()
 }

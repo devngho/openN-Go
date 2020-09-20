@@ -19,6 +19,7 @@ var (
 	DocumentEditHtml = ""
 	DocumentEditBlockHtml = ""
 	DocumentOldHtml = ""
+	DocumentNewHtml = ""
 	EmailCheckHtml = ""
 	ErrorHtml = ""
 	LicenseHtmlFile = ""
@@ -43,6 +44,7 @@ func InitStatic()  {
 	registryFileToVar(filepath.Join(dir, "theme", "document_edit.html"), &DocumentEditHtml)
 	registryFileToVar(filepath.Join(dir, "theme", "document_edit_block.html"), &DocumentEditBlockHtml)
 	registryFileToVar(filepath.Join(dir, "theme", "document_old.html"), &DocumentOldHtml)
+	registryFileToVar(filepath.Join(dir, "theme", "document_new.html"), &DocumentNewHtml)
 	registryFileToVar(filepath.Join(dir, "theme", "email_check.html"), &EmailCheckHtml)
 	registryFileToVar(filepath.Join(dir, "theme", "error.html"), &ErrorHtml)
 	registryFileToVar(filepath.Join(dir, "theme", "license.html"), &LicenseHtmlFile)

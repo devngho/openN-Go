@@ -1,30 +1,28 @@
 package namespacehelper
 
 import (
-	"encoding/json"
+	"context"
 	"github.com/devngho/openN-Go/aclhelper"
 	"github.com/devngho/openN-Go/iohelper"
+	"github.com/devngho/openN-Go/mongohelper"
+	"go.mongodb.org/mongo-driver/bson"
 	"os"
-	"path/filepath"
 )
 
 var Namespaces []Namespace
 type Namespace struct {
 	Name         string        `json:"name"`
-	NamespaceACL aclhelper.ACL `json:"acl"`
+	NamespaceACL aclhelper.ACLNamespace `json:"acl"`
 }
 
 func ReadNamespaces()  {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	var results []Namespace // Use your own type here, but this works too
+
+	cur, err := mongohelper.Database.Collection("namespace").Find(context.TODO(), bson.D{})
 	iohelper.ErrLog(err)
-	f, err := os.Open(filepath.Join(dir, "db", "namespaces.json"))
-	if os.IsNotExist(err){
-		iohelper.ErrLog(err)
-	}
-	dec := json.NewDecoder(f)
-	err = dec.Decode(&Namespaces)
+	err = cur.All(context.TODO(), &results)
 	iohelper.ErrLog(err)
-	_ = f.Close()
+	Namespaces = results
 }
 
 func Find(NamespaceName string) (Namespace, error) {

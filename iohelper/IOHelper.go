@@ -5,11 +5,6 @@ import (
 	"os"
 )
 
-func CreateFolder(name string, perm os.FileMode){
-	err := os.Mkdir(name, perm)
-	ErrLog(err)
-}
-
 func CreateFile(path string) *os.File {
 	file, err := os.Create(path)
 	if ErrLog(err){
@@ -19,6 +14,15 @@ func CreateFile(path string) *os.File {
 }
 
 func ErrLog(err error) bool{
+	if err != nil {
+		log.Println(err)
+		return true
+	}else {
+		return false
+	}
+}
+
+func ErrFatal(err error) bool{
 	if err != nil {
 		log.Fatal(err)
 		return true
