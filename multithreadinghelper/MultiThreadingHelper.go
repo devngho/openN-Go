@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/devngho/openN-Go/aclhelper"
 	"github.com/devngho/openN-Go/documenthelper"
+	"github.com/devngho/openN-Go/iohelper"
 	"github.com/devngho/openN-Go/namespacehelper"
 	"github.com/devngho/openN-Go/themehelper"
 	"net/http"
@@ -22,7 +23,7 @@ type DocumentReadRequest struct {
 
 type DocumentCreateRequest struct {
 	Name string
-	Namespace string
+	Namespace namespacehelper.Namespace
 	Result *[2]string
 	StatusCode *int
 	UserName string
@@ -79,18 +80,26 @@ func ComputeDocumentReadRequest(req *DocumentReadRequest)  {
 }
 
 func ComputeDocumentCreateRequest(req *DocumentCreateRequest)  {
-	ns, _ := namespacehelper.Find(req.Namespace)
-	if aclhelper.AclAllow(req.Acl, ns.NamespaceACL.Create){
-		_, _ = documenthelper.Create(ns.Name, req.Name, req.UserName)
-		*req.StatusCode = http.StatusFound
-		*req.Result = [2]string{"text/html; charset=utf-8", fmt.Sprintf("/w/%s:%s", ns.Name, req.Name)}
+	has, err := documenthelper.HasDocument(req.Namespace.Name, req.Name)
+	iohelper.ErrLog(err)
+	if ! has{
+		if aclhelper.AclAllow(req.Acl, req.Namespace.NamespaceACL.Create) {
+			_, _ = documenthelper.Create(req.Namespace.Name, req.Name, req.UserName)
+			*req.StatusCode = http.StatusFound
+			*req.Result = [2]string{"text/html; charset=utf-8", fmt.Sprintf("/w/%s:%s", req.Namespace.Name, req.Name)}
+		} else {
+			docHtml := themehelper.DocumentAclBlockHtml
+			docHtml = strings.ReplaceAll(docHtml, "${namespace}", req.Namespace.Name)
+			docHtml = strings.ReplaceAll(docHtml, "${name}", req.Name)
+			docHtml = strings.ReplaceAll(docHtml, "${watchacl}", req.Namespace.NamespaceACL.Watch)
+			docHtml = strings.ReplaceAll(docHtml, "${editacl}", req.Namespace.NamespaceACL.Edit)
+			docHtml = strings.ReplaceAll(docHtml, "${editaclacl}", req.Namespace.NamespaceACL.AclEdit)
+			*req.StatusCode = http.StatusForbidden
+			*req.Result = [2]string{"text/html; charset=utf-8", docHtml}
+		}
 	}else{
-		docHtml := themehelper.DocumentAclBlockHtml
-		docHtml = strings.ReplaceAll(docHtml, "${namespace}", ns.Name)
-		docHtml = strings.ReplaceAll(docHtml, "${name}", req.Name)
-		docHtml = strings.ReplaceAll(docHtml, "${watchacl}", ns.NamespaceACL.Watch)
-		docHtml = strings.ReplaceAll(docHtml, "${editacl}", ns.NamespaceACL.Edit)
-		docHtml = strings.ReplaceAll(docHtml, "${editaclacl}", ns.NamespaceACL.AclEdit)
+		docHtml := themehelper.ErrorHtml
+		docHtml = strings.ReplaceAll(docHtml, "${error}", "DOCUMENT_ALREADY_EXISTS")
 		*req.StatusCode = http.StatusForbidden
 		*req.Result = [2]string{"text/html; charset=utf-8", docHtml}
 	}

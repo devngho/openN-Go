@@ -135,7 +135,7 @@ func OnRequest(c *gin.Context, reqType int8) {
 		var statusCode int
 		var waitGroup sync.WaitGroup
 		waitGroup.Add(1)
-		multithreadinghelper.DocumentCreateRequests <- &multithreadinghelper.DocumentCreateRequest{Name: DocumentName, Namespace: ns.Name, Result: &res, StatusCode: &statusCode, WaitChannel: &waitGroup, Acl: acl, UserName: creator}
+		multithreadinghelper.DocumentCreateRequests <- &multithreadinghelper.DocumentCreateRequest{Name: DocumentName, Namespace: ns, Result: &res, StatusCode: &statusCode, WaitChannel: &waitGroup, Acl: acl, UserName: creator}
 		waitGroup.Wait()
 		if statusCode == http.StatusFound{
 			c.Redirect(302, res[1])

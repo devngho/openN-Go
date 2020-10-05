@@ -57,8 +57,9 @@ func Create(namespace string, name string, creater string) (Document, error) {
 func Read(Namespace string, Name string) (Document, error) {
 	var u Document
 	res := mongohelper.Database.Collection("document").FindOne(context.TODO(), bson.M{"namespace": Namespace,"name": Name})
-	iohelper.ErrLog(res.Err())
-	iohelper.ErrLog(res.Decode(&u))
+	if res.Err() != nil {return Document{}, res.Err()}
+	err := res.Decode(&u)
+	if err != nil{return Document{}, err}
 	if u.Acl.UseNamespace{
 		n, err := namespacehelper.Find(u.Namespace)
 		if err != nil{
@@ -68,4 +69,9 @@ func Read(Namespace string, Name string) (Document, error) {
 		}
 	}
 	return u, nil
+}
+func HasDocument(Namespace string, Name string) (bool, error) {
+	count, err := mongohelper.Database.Collection("document").CountDocuments(context.TODO(), bson.D{{"namespace", Namespace}, {"name", Name}})
+	if err != nil{return false, err}
+	if count >= 1{return true, nil} else {return false, nil}
 }
