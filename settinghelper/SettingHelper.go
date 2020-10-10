@@ -51,6 +51,8 @@ func InitFolderFile(){
 			cfg.Section("wiki").Key("license_html").MustString("<a rel=\"license\" href=\"http://creativecommons.org/licenses/by/4.0/\"><img alt=\"크리에이티브 커먼즈 라이선스\" style=\"border-width:0\" src=\"https://i.creativecommons.org/l/by/4.0/88x31.png\" /></a><br />이 저작물은 <a rel=\"license\" href=\"http://creativecommons.org/licenses/by/4.0/\">크리에이티브 커먼즈 저작자표시 4.0 국제 라이선스</a>에 따라 이용할 수 있습니다.")
 			cfg.Section("wiki").Key("name_next").MustString("는")
 			cfg.Section("wiki").Key("start_page").MustString("대문")
+			cfg.Section("wiki").Key("use_markdown").MustBool(true)
+			cfg.Section("wiki").Key("markdown").MustString("example")
 			_, _ = cfg.NewSection("secret")
 			cfg.Section("secret").Key("key").MustString("SECRET")
 			_, _ = cfg.NewSection("db")
@@ -112,6 +114,6 @@ func InitData()  {
 	}
 }
 //Read settings with section and key
-func ReadSetting(section string, key string) string {
-	return Setting.Section(section).Key(key).String()
+func ReadSetting(section string, key string) *ini.Key {
+	return Setting.Section(section).Key(key)
 }

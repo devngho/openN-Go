@@ -35,9 +35,9 @@ func InitStatic()  {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	iohelper.ErrLog(err)
 
-	WikiName = settinghelper.ReadSetting("wiki", "name")
-	WikiNext = settinghelper.ReadSetting("wiki", "name_next")
-	LicenseHtml = settinghelper.ReadSetting("wiki", "license_html")
+	WikiName = settinghelper.ReadSetting("wiki", "name").String()
+	WikiNext = settinghelper.ReadSetting("wiki", "name_next").String()
+	LicenseHtml = settinghelper.ReadSetting("wiki", "license_html").String()
 
 	registryFileToVar(filepath.Join(dir, "theme", "document.html"), &DocumentHtml)
 	registryFileToVar(filepath.Join(dir, "theme", "document_acl_block.html"), &DocumentAclBlockHtml)

@@ -45,7 +45,7 @@ func OnRequest(c *gin.Context, reqType int8) {
 		ns, err := namespacehelper.Find(DocumentNamespace)
 		if err != nil{
 			DocumentName = fmt.Sprintf("%s:%s", DocumentNamespace, DocumentName)
-			DocumentNamespace = settinghelper.ReadSetting("default", "namespace")
+			DocumentNamespace = settinghelper.ReadSetting("default", "namespace").String()
 			ns, _ = namespacehelper.Find(DocumentNamespace)
 			c.Redirect(http.StatusFound, fmt.Sprintf("/w/%s:%s", DocumentNamespace, DocumentName))
 			return
@@ -102,7 +102,7 @@ func OnRequest(c *gin.Context, reqType int8) {
 		ns, err := namespacehelper.Find(DocumentNamespace)
 		if err != nil{
 			DocumentName = fmt.Sprintf("%s:%s", DocumentNamespace, DocumentName)
-			DocumentNamespace = settinghelper.ReadSetting("default", "namespace")
+			DocumentNamespace = settinghelper.ReadSetting("default", "namespace").String()
 			ns, _ = namespacehelper.Find(DocumentNamespace)
 			c.Redirect(http.StatusFound, fmt.Sprintf("/new/%s:%s", DocumentNamespace, DocumentName))
 			return
@@ -185,7 +185,7 @@ func Setup(r *gin.Engine, wikiName string, mainPage string){
 		ns, err := namespacehelper.Find(DocumentNamespace)
 		if err != nil{
 			DocumentName = fmt.Sprintf("%s:%s", DocumentNamespace, DocumentName)
-			DocumentNamespace = settinghelper.ReadSetting("default", "namespace")
+			DocumentNamespace = settinghelper.ReadSetting("default", "namespace").String()
 			ns, _ = namespacehelper.Find(DocumentNamespace)
 		}
 		docHtml := themehelper.DocumentNewHtml

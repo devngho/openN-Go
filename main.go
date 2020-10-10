@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/devngho/openN-Go/aclhelper"
+	"github.com/devngho/openN-Go/markdownhelper"
 	"github.com/devngho/openN-Go/mongohelper"
 	"github.com/devngho/openN-Go/multithreadinghelper"
 	"github.com/devngho/openN-Go/namespacehelper"
@@ -17,17 +18,18 @@ func main() {
 	//Setting
 	settinghelper.InitFolderFile()
 	settinghelper.LoadSettings()
-	mongohelper.Connect(settinghelper.ReadSetting("db", "server"), settinghelper.ReadSetting("db", "database"))
+	mongohelper.Connect(settinghelper.ReadSetting("db", "server").String(), settinghelper.ReadSetting("db", "database").String())
 	settinghelper.InitData()
 	themehelper.InitStatic()
 	namespacehelper.ReadNamespaces()
 	aclhelper.AclLoad()
 	multithreadinghelper.InitGoroutine()
 	userhelper.Load()
+	markdownhelper.SetParser()
 	r := gin.Default()
 
 	//Boot server
-	r.Use(sessions.Sessions("login", sessions.NewCookieStore([]byte(settinghelper.ReadSetting("secret", "key")))))
-	router.Setup(r, settinghelper.ReadSetting("wiki", "name"), settinghelper.ReadSetting("wiki", "start_page"))
+	r.Use(sessions.Sessions("login", sessions.NewCookieStore([]byte(settinghelper.ReadSetting("secret", "key").String()))))
+	router.Setup(r, settinghelper.ReadSetting("wiki", "name").String(), settinghelper.ReadSetting("wiki", "start_page").String())
 	r.Run(":80")
 }

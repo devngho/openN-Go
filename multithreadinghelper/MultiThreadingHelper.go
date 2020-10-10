@@ -5,6 +5,7 @@ import (
 	"github.com/devngho/openN-Go/aclhelper"
 	"github.com/devngho/openN-Go/documenthelper"
 	"github.com/devngho/openN-Go/iohelper"
+	"github.com/devngho/openN-Go/markdownhelper"
 	"github.com/devngho/openN-Go/namespacehelper"
 	"github.com/devngho/openN-Go/themehelper"
 	"net/http"
@@ -58,6 +59,7 @@ func ComputeDocumentReadRequest(req *DocumentReadRequest)  {
 	}else {
 		//Document Render
 		if aclhelper.AclAllow(req.Acl, doc.Acl.Watch) {
+			doc.Text = markdownhelper.ToHTML(doc.Text)
 			docHtml := themehelper.DocumentHtml
 			docHtml = strings.ReplaceAll(docHtml, "${namespace}", doc.Namespace)
 			docHtml = strings.ReplaceAll(docHtml, "${name}", doc.Name)
