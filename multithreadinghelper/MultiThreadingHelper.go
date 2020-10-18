@@ -102,7 +102,7 @@ func ComputeDocumentCreateRequest(req *DocumentCreateRequest)  {
 	}else{
 		docHtml := themehelper.ErrorHtml
 		docHtml = strings.ReplaceAll(docHtml, "${error}", "DOCUMENT_ALREADY_EXISTS")
-		*req.StatusCode = http.StatusForbidden
+		*req.StatusCode = http.StatusBadRequest
 		*req.Result = [2]string{"text/html; charset=utf-8", docHtml}
 	}
 	req.WaitChannel.Done()
