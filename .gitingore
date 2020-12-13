@@ -12,6 +12,10 @@
 *.out
 
 theme/
+go.sum
+openN-Go.imi
+setting.ini
+.idea/jsLibraryMappings.xml
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
