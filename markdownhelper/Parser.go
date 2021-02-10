@@ -1,20 +1,17 @@
 package markdownhelper
 
-
-//This is example markdown parser. using html-to-markdown, markdown.
+//This is example markdown parser.
 // Markdown to your parser name
-type Markdown struct {}
+type Example struct{}
 
 func init() {
-	register("example", Markdown{})
+	register("example", Example{})
 }
 
-func (t Markdown) ToHTML(markdown string) string {
-	//Markup to html code here
+func (t Example) ToHTML(markdown string) string {
 	return markdown
 }
 
-func (t Markdown) ToMarkdown(html string) string {
-	//Html to markup code here
+func (t Example) ToMarkdown(html string) string {
 	return html
 }

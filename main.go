@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/devngho/openN-Go/aclhelper"
+	"github.com/devngho/openN-Go/databasehelper"
 	"github.com/devngho/openN-Go/markdownhelper"
-	"github.com/devngho/openN-Go/mongohelper"
 	"github.com/devngho/openN-Go/multithreadinghelper"
 	"github.com/devngho/openN-Go/namespacehelper"
 	"github.com/devngho/openN-Go/router"
@@ -18,7 +18,8 @@ func main() {
 	//Setting
 	settinghelper.InitFolderFile()
 	settinghelper.LoadSettings()
-	mongohelper.Connect(settinghelper.ReadSetting("db", "server").String(), settinghelper.ReadSetting("db", "database").String())
+	databasehelper.SetDAO(settinghelper.ReadSetting("db", "type").String())
+	databasehelper.Connection(settinghelper.ReadSetting("db", "server").String(), settinghelper.ReadSetting("db", "setting").String())
 	settinghelper.InitData()
 	themehelper.InitStatic()
 	namespacehelper.ReadNamespaces()

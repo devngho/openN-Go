@@ -7,6 +7,7 @@ import (
 	"github.com/devngho/openN-Go/namespacehelper"
 	"github.com/devngho/openN-Go/settinghelper"
 	"github.com/devngho/openN-Go/themehelper"
+	"github.com/devngho/openN-Go/types"
 	"github.com/devngho/openN-Go/userhelper"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -18,32 +19,22 @@ import (
 	"sync"
 )
 
-const WatchDocument = 0
-const EditDocument = 1
-const WatchOldlistDocument = 2
-const WatchRevDocument = 3
-const Search = 4
-const NewDocument = 5
-const DeleteDocument = 6
-const EditAclDocument = 7
-const LoginPost = 8
-
 func OnRequest(c *gin.Context, reqType int8) {
 	session := sessions.Default(c)
-	//Find type
+	//Find types
 	switch reqType {
-	case WatchDocument:
+	case types.WatchDocument:
 		//Document Name
 		temp := strings.Split(c.Param("document"), ":")
 		DocumentNamespace := temp[0]
 		DocumentName := strings.Join(temp[1:], ":")
-		if len(temp) == 1{
+		if len(temp) == 1 {
 			c.Redirect(302, fmt.Sprintf("%s:%s", settinghelper.ReadSetting("default", "namespace"), DocumentNamespace))
 			return
 		}
 		fmt.Printf("DocNamespace : %s\nDocName : %s\n", DocumentNamespace, DocumentName)
 		ns, err := namespacehelper.Find(DocumentNamespace)
-		if err != nil{
+		if err != nil {
 			DocumentName = fmt.Sprintf("%s:%s", DocumentNamespace, DocumentName)
 			DocumentNamespace = settinghelper.ReadSetting("default", "namespace").String()
 			ns, _ = namespacehelper.Find(DocumentNamespace)
@@ -55,13 +46,13 @@ func OnRequest(c *gin.Context, reqType int8) {
 		//Get Acl
 		acl := "ip"
 		uid := session.Get("uid")
-		if uid != nil{
+		if uid != nil {
 			usr, err := userhelper.FindUserWithUid(fmt.Sprintf("%v", uid))
-			if err != nil{
+			if err != nil {
 				session.Clear()
 				_ = session.Save()
 				c.Redirect(302, "/login")
-			}else{
+			} else {
 				acl = usr.Acl
 			}
 		}
@@ -74,13 +65,13 @@ func OnRequest(c *gin.Context, reqType int8) {
 		multithreadinghelper.DocumentReadRequests <- &multithreadinghelper.DocumentReadRequest{Name: DocumentName, Namespace: ns.Name, Result: &res, StatusCode: &statusCode, WaitChannel: &waitGroup, Acl: acl}
 		waitGroup.Wait()
 		c.Data(statusCode, res[0], []byte(res[1]))
-	case LoginPost:
+	case types.LoginPost:
 		id := c.PostForm("id")
 		pwd := c.PostForm("password")
 		user, err := userhelper.FindUserWithNamePwd(id, sha3.Sum512([]byte(pwd)))
 		if err != nil {
 			c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(strings.ReplaceAll(themehelper.LoginHtml, "${error}", "has-error")))
-		}else {
+		} else {
 			session.Set("uid", user.Uid)
 			if err := session.Save(); err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session"})
@@ -89,18 +80,18 @@ func OnRequest(c *gin.Context, reqType int8) {
 				c.Redirect(302, "/")
 			}
 		}
-	case NewDocument:
+	case types.NewDocument:
 		temp := strings.Split(c.Param("document"), ":")
 		DocumentNamespace := temp[0]
 		DocumentName := strings.Join(temp[1:], ":")
-		if len(temp) == 1{
+		if len(temp) == 1 {
 			c.Redirect(302, fmt.Sprintf("%s:%s", settinghelper.ReadSetting("default", "namespace"), DocumentNamespace))
 			return
 		}
 		fmt.Printf("DocNamespace : %s\nDocName : %s\n", DocumentNamespace, DocumentName)
 
 		ns, err := namespacehelper.Find(DocumentNamespace)
-		if err != nil{
+		if err != nil {
 			DocumentName = fmt.Sprintf("%s:%s", DocumentNamespace, DocumentName)
 			DocumentNamespace = settinghelper.ReadSetting("default", "namespace").String()
 			ns, _ = namespacehelper.Find(DocumentNamespace)
@@ -111,23 +102,23 @@ func OnRequest(c *gin.Context, reqType int8) {
 
 		acl := "ip"
 		uid := session.Get("uid")
-		var usr userhelper.User
-		if uid != nil{
+		var usr types.User
+		if uid != nil {
 			var err error
 			usr, err = userhelper.FindUserWithUid(fmt.Sprintf("%v", uid))
-			if err != nil{
+			if err != nil {
 				session.Clear()
 				_ = session.Save()
 				c.Redirect(302, "/login")
-			}else{
+			} else {
 				acl = usr.Acl
 			}
 		}
 
 		var creator string
-		if acl == "ip"{
+		if acl == "ip" {
 			creator = c.ClientIP()
-		}else {
+		} else {
 			creator = usr.Name
 		}
 
@@ -137,19 +128,19 @@ func OnRequest(c *gin.Context, reqType int8) {
 		waitGroup.Add(1)
 		multithreadinghelper.DocumentCreateRequests <- &multithreadinghelper.DocumentCreateRequest{Name: DocumentName, Namespace: ns, Result: &res, StatusCode: &statusCode, WaitChannel: &waitGroup, Acl: acl, UserName: creator}
 		waitGroup.Wait()
-		if statusCode == http.StatusFound{
+		if statusCode == http.StatusFound {
 			c.Redirect(302, res[1])
-		}else {
+		} else {
 			c.Data(statusCode, res[0], []byte(res[1]))
 		}
 	}
 }
 
 //Registry Route
-func Setup(r *gin.Engine, wikiName string, mainPage string){
+func Setup(r *gin.Engine, wikiName string, mainPage string) {
 	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
 	r.GET("/w/:document", func(context *gin.Context) {
-		OnRequest(context, WatchDocument)
+		OnRequest(context, types.WatchDocument)
 	})
 	r.GET("/license", func(context *gin.Context) {
 		context.Data(http.StatusOK, "text/html; charset=utf-8", []byte(themehelper.LicenseHtmlFile))
@@ -157,19 +148,19 @@ func Setup(r *gin.Engine, wikiName string, mainPage string){
 	r.GET("/login", func(context *gin.Context) {
 		if sessions.Default(context).Get("uid") == nil {
 			context.Data(http.StatusOK, "text/html; charset=utf-8", []byte(strings.ReplaceAll(themehelper.LoginHtml, "${error}", "")))
-		}else{
+		} else {
 			context.Redirect(302, "/")
 		}
 	})
 	r.POST("/login", func(context *gin.Context) {
-		OnRequest(context, LoginPost)
+		OnRequest(context, types.LoginPost)
 	})
 	r.GET("/", func(context *gin.Context) {
 		context.Redirect(http.StatusPermanentRedirect, "/w/"+wikiName+":"+mainPage)
 	})
 	r.GET("/acl", func(context *gin.Context) {
 		uid := sessions.Default(context).Get("uid")
-		if uid != nil{
+		if uid != nil {
 			t, _ := userhelper.FindUserWithUid(fmt.Sprintf("%v", uid))
 			context.JSON(200, gin.H{"Acl": t.Acl, "Includes": aclhelper.AclRoles[t.Acl]})
 		}
@@ -178,12 +169,12 @@ func Setup(r *gin.Engine, wikiName string, mainPage string){
 		temp := strings.Split(context.Param("document"), ":")
 		DocumentNamespace := temp[0]
 		DocumentName := strings.Join(temp[1:], ":")
-		if len(temp) == 1{
+		if len(temp) == 1 {
 			context.Redirect(302, fmt.Sprintf("%s:%s", settinghelper.ReadSetting("default", "namespace"), DocumentNamespace))
 			return
 		}
 		ns, err := namespacehelper.Find(DocumentNamespace)
-		if err != nil{
+		if err != nil {
 			DocumentName = fmt.Sprintf("%s:%s", DocumentNamespace, DocumentName)
 			DocumentNamespace = settinghelper.ReadSetting("default", "namespace").String()
 			ns, _ = namespacehelper.Find(DocumentNamespace)
@@ -193,9 +184,14 @@ func Setup(r *gin.Engine, wikiName string, mainPage string){
 		docHtml = strings.ReplaceAll(docHtml, "${name}", DocumentName)
 		context.Data(http.StatusOK, "text/html; charset=utf-8", []byte(docHtml))
 	})
-	r.POST("/new/:document", func(context *gin.Context) {
-		OnRequest(context, NewDocument)
+	r.GET("/reload", func(context *gin.Context) {
+		namespacehelper.ReadNamespaces()
+		aclhelper.AclLoad()
+		context.String(http.StatusOK, "RELOAD COMPLETED")
 	})
-	r.Static("/theme/",filepath.Join(dir, "theme"))
+	r.POST("/new/:document", func(context *gin.Context) {
+		OnRequest(context, types.NewDocument)
+	})
+	r.Static("/theme/", filepath.Join(dir, "theme"))
 	r.StaticFile("/favicon.ico", filepath.Join(dir, "theme", "favicon.ico"))
 }

@@ -1,77 +1,46 @@
 package documenthelper
 
 import (
-	"context"
-	"github.com/devngho/openN-Go/aclhelper"
-	"github.com/devngho/openN-Go/iohelper"
-	"github.com/devngho/openN-Go/mongohelper"
+	"github.com/devngho/openN-Go/databasehelper"
 	"github.com/devngho/openN-Go/namespacehelper"
-	"go.mongodb.org/mongo-driver/bson"
+	"github.com/devngho/openN-Go/types"
 	"os"
 )
 
-type Document struct {
-	Namespace string        `json:"namespace"`
-	Name      string        `json:"name"`
-	Text      string        `json:"text"`
-	Acl       aclhelper.ACL `json:"acl"`
-	Editor    string        `json:"editor"`
-	Version   int           `json:"version"`
+func Edit(d types.Document, n string) error {
+	return databasehelper.Dao.EditDocument(d, n)
 }
 
-type DocumentOld struct {
-	Namespace string        `json:"namespace"`
-	Name      string        `json:"name"`
-	Text      string        `json:"text"`
-	Acl       aclhelper.ACL `json:"acl"`
-	Editor    string        `json:"editor"`
-	Version   int           `json:"version"`
-	Action    string `json:"action"`
+func Delete(d types.Document) error {
+	return databasehelper.Dao.DeleteDocument(d)
 }
-
-const (
-	DocumentEditAction = "edit"
-	DocumentAclEditAction = "acl_edit"
-	DocumentCreateAction = "create"
-	DocumentDeleteAction = "delete"
-)
-
-func (d Document) Edit(n string){
-	
-}
-func (d Document) Delete() {
-
-}
-func Create(namespace string, name string, creater string) (Document, error) {
-	_, err := mongohelper.Database.Collection("document").InsertOne(context.TODO(), Document{Namespace: namespace, Name: name, Editor: creater, Version: 1, Text: "", Acl: aclhelper.ACL{
-		UseNamespace: true,
-	}})
-	iohelper.ErrLog(err)
-	_, err = mongohelper.Database.Collection("document_old").InsertOne(context.TODO(), bson.M{"namespace":namespace, "name":name, "data":[]DocumentOld{{Namespace: namespace, Name: name, Editor: creater, Version: 1, Action: DocumentCreateAction, Text: "", Acl: aclhelper.ACL{
-		UseNamespace: true,
-	}}}})
-	iohelper.ErrLog(err)
-	u, _ := Read(namespace, name)
+func Create(namespace string, name string, creator string) (types.Document, error) {
+	err := databasehelper.Dao.CreateDocument(namespace, name, creator)
+	if err != nil {
+		return types.Document{}, err
+	}
+	err = databasehelper.Dao.CreateDocumentArchive(namespace, name, creator)
+	if err != nil {
+		return types.Document{}, err
+	}
+	u, err := Read(namespace, name)
 	return u, err
 }
-func Read(Namespace string, Name string) (Document, error) {
-	var u Document
-	res := mongohelper.Database.Collection("document").FindOne(context.TODO(), bson.M{"namespace": Namespace,"name": Name})
-	if res.Err() != nil {return Document{}, res.Err()}
-	err := res.Decode(&u)
-	if err != nil{return Document{}, err}
-	if u.Acl.UseNamespace{
+func Read(namespace string, name string) (types.Document, error) {
+	u, err := databasehelper.Dao.ReadDocument(namespace, name)
+	if err != nil {
+		return types.Document{}, err
+	}
+	if u.Acl.UseNamespace {
 		n, err := namespacehelper.Find(u.Namespace)
-		if err != nil{
+		if err != nil {
 			return u, os.ErrInvalid
-		}else {
-			u.Acl = aclhelper.ACL{Delete: n.NamespaceACL.Delete, Edit: n.NamespaceACL.Edit, AclEdit: n.NamespaceACL.AclEdit, Watch: n.NamespaceACL.Watch, UseNamespace: false}
+		} else {
+			u.Acl = types.ACL{Delete: n.NamespaceACL.Delete, Edit: n.NamespaceACL.Edit, AclEdit: n.NamespaceACL.AclEdit, Watch: n.NamespaceACL.Watch, UseNamespace: false}
 		}
 	}
 	return u, nil
 }
-func HasDocument(Namespace string, Name string) (bool, error) {
-	count, err := mongohelper.Database.Collection("document").CountDocuments(context.TODO(), bson.D{{"namespace", Namespace}, {"name", Name}})
-	if err != nil{return false, err}
-	if count >= 1{return true, nil} else {return false, nil}
+func HasDocument(namespace string, name string) (bool, error) {
+	return databasehelper.Dao.HasDocument(namespace, name)
 }

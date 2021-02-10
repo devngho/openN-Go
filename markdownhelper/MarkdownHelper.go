@@ -4,14 +4,10 @@ import (
 	"errors"
 	"github.com/devngho/openN-Go/iohelper"
 	"github.com/devngho/openN-Go/settinghelper"
+	"github.com/devngho/openN-Go/types"
 )
 
-type MarkdownParser interface {
-	ToHTML(markdown string) string
-	ToMarkdown(html string) string
-}
-
-type RawReturn struct {}
+type RawReturn struct{}
 
 func (t RawReturn) ToHTML(markdown string) string {
 	return markdown
@@ -21,14 +17,14 @@ func (t RawReturn) ToMarkdown(html string) string {
 	return html
 }
 
-var parsers = make(map[string]MarkdownParser)
-var parser MarkdownParser
+var parsers = make(map[string]types.MarkdownParser)
+var parser types.MarkdownParser
 
-func register(name string, markdownParser MarkdownParser)  {
+func register(name string, markdownParser types.MarkdownParser) {
 	parsers[name] = markdownParser
 }
 
-func SetParser()  {
+func SetParser() {
 	use, err := settinghelper.ReadSetting("wiki", "use_markdown").Bool()
 	iohelper.ErrLog(err)
 	if use {
@@ -38,7 +34,7 @@ func SetParser()  {
 		} else {
 			parser = parsers[name]
 		}
-	}else{
+	} else {
 		parser = RawReturn{}
 	}
 }

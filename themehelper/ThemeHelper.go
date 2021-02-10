@@ -1,6 +1,5 @@
 package themehelper
 
-
 import (
 	"github.com/devngho/openN-Go/iohelper"
 	"github.com/devngho/openN-Go/settinghelper"
@@ -14,24 +13,24 @@ var WikiName string
 var WikiNext string
 var LicenseHtml string
 var (
-	DocumentHtml = ""
-	DocumentAclBlockHtml = ""
-	DocumentEditHtml = ""
+	DocumentHtml          = ""
+	DocumentAclBlockHtml  = ""
+	DocumentEditHtml      = ""
 	DocumentEditBlockHtml = ""
-	DocumentOldHtml = ""
-	DocumentNewHtml = ""
-	EmailCheckHtml = ""
-	ErrorHtml = ""
-	LicenseHtmlFile = ""
-	LoginHtml = ""
-	NotFoundDocumentHtml = ""
-	NotFoundHtml = ""
-	OverlapHtml = ""
-	SignupHtml = ""
-	WaitHtml = ""
+	DocumentArchiveHtml   = ""
+	DocumentNewHtml       = ""
+	EmailCheckHtml        = ""
+	ErrorHtml             = ""
+	LicenseHtmlFile       = ""
+	LoginHtml             = ""
+	NotFoundDocumentHtml  = ""
+	NotFoundHtml          = ""
+	OverlapHtml           = ""
+	SignupHtml            = ""
+	WaitHtml              = ""
 )
 
-func InitStatic()  {
+func InitStatic() {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	iohelper.ErrLog(err)
 
@@ -43,7 +42,7 @@ func InitStatic()  {
 	registryFileToVar(filepath.Join(dir, "theme", "document_acl_block.html"), &DocumentAclBlockHtml)
 	registryFileToVar(filepath.Join(dir, "theme", "document_edit.html"), &DocumentEditHtml)
 	registryFileToVar(filepath.Join(dir, "theme", "document_edit_block.html"), &DocumentEditBlockHtml)
-	registryFileToVar(filepath.Join(dir, "theme", "document_old.html"), &DocumentOldHtml)
+	registryFileToVar(filepath.Join(dir, "theme", "document_archive.html"), &DocumentArchiveHtml)
 	registryFileToVar(filepath.Join(dir, "theme", "document_new.html"), &DocumentNewHtml)
 	registryFileToVar(filepath.Join(dir, "theme", "email_check.html"), &EmailCheckHtml)
 	registryFileToVar(filepath.Join(dir, "theme", "error.html"), &ErrorHtml)
@@ -56,7 +55,7 @@ func InitStatic()  {
 	registryFileToVar(filepath.Join(dir, "theme", "wait.html"), &WaitHtml)
 }
 
-func registryFileToVar(file string, fileVar *string)  {
+func registryFileToVar(file string, fileVar *string) {
 	read, err := ioutil.ReadFile(file)
 	iohelper.ErrLog(err)
 	result := strings.ReplaceAll(string(read), "${wiki}", WikiName)

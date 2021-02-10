@@ -1,15 +1,8 @@
 package settinghelper
 
 import (
-	"context"
-	"github.com/devngho/openN-Go/aclhelper"
+	"github.com/devngho/openN-Go/databasehelper"
 	"github.com/devngho/openN-Go/iohelper"
-	"github.com/devngho/openN-Go/mongohelper"
-	"github.com/devngho/openN-Go/namespacehelper"
-	"github.com/devngho/openN-Go/userhelper"
-	"github.com/segmentio/ksuid"
-	"go.mongodb.org/mongo-driver/bson"
-	"golang.org/x/crypto/sha3"
 	"gopkg.in/ini.v1"
 	"log"
 	"os"
@@ -18,7 +11,7 @@ import (
 
 var Setting *ini.File
 
-func LoadSettings()  {
+func LoadSettings() {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	iohelper.ErrLog(err)
 
@@ -29,7 +22,7 @@ func LoadSettings()  {
 }
 
 //Folder and File Init
-func InitFolderFile(){
+func InitFolderFile() {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	iohelper.ErrLog(err)
 
@@ -53,11 +46,10 @@ func InitFolderFile(){
 			cfg.Section("wiki").Key("start_page").MustString("대문")
 			cfg.Section("wiki").Key("use_markdown").MustBool(true)
 			cfg.Section("wiki").Key("markdown").MustString("example")
-			_, _ = cfg.NewSection("secret")
-			cfg.Section("secret").Key("key").MustString("SECRET")
 			_, _ = cfg.NewSection("db")
+			cfg.Section("db").Key("type").MustString("mongodb")
 			cfg.Section("db").Key("server").MustString("mongodb://localhost:27017")
-			cfg.Section("db").Key("database").MustString("wiki")
+			cfg.Section("db").Key("setting").MustString("wiki")
 			_ = cfg.SaveTo(filepath.Join(dir, "setting.ini"))
 		} else {
 			log.Fatal(err)
@@ -66,53 +58,46 @@ func InitFolderFile(){
 	}
 
 	/*
-	//Folder Exist Check
-	if _, err := os.Stat(filepath.Join(dir, "db")); os.IsNotExist(err) {
-		//Create Folder
-		iohelper.CreateFolder(filepath.Join(dir, "db"), 777)
-		//Create Namespace File
-		f1, _ := os.Create(filepath.Join(dir, "db", "namespaces.json"))
-		defer f1.Close()
-		u := []namespacehelper.Namespace{{Name: "문서", NamespaceACL: aclhelper.ACLNamespace{AclEdit: "admin", Edit: "ip", Watch: "ip", Create: "ip", Delete: "user"}}}
-		enc1 := json.NewEncoder(f1)
-		enc1.SetIndent("", "  ")
-		_ = enc1.Encode(u)
-		//Create ACL File
-		f2, _ := os.Create(filepath.Join(dir, "db", "acl.json"))
-		defer f2.Close()
-		ua := []aclhelper.ACLRole{{Name: "admin", Include: []string{"ip", "user"}}, {Name: "user", Include: []string{"ip"}}, {Name: "ip", Include: []string{}}}
-		enc2 := json.NewEncoder(f2)
-		enc2.SetIndent("", "  ")
-		_ = enc2.Encode(ua)
-		//Create User File
-		f3, _ := os.Create(filepath.Join(dir, "db", "user.json"))
-		defer f3.Close()
-		uaa := []userhelper.User{{Acl: "admin", PasswordHashed: sha3.Sum512([]byte("openngo")), Name: "admin", Uid: ksuid.New().String()}}
-		enc3 := json.NewEncoder(f3)
-		enc3.SetIndent("", "  ")
-		_ = enc3.Encode(uaa)
-	}
-	if _, err := os.Stat(filepath.Join(dir, "db", "old")); os.IsNotExist(err) {
-		//Create Folder
-		iohelper.CreateFolder(filepath.Join(dir, "db", "old"), 777)
-	}
-	if _, err := os.Stat(filepath.Join(dir, "theme")); os.IsNotExist(err) {
-		//Create Folder
-		iohelper.CreateFolder(filepath.Join(dir, "theme"), 777)
-	}*/
+		//Folder Exist Check
+		if _, err := os.Stat(filepath.Join(dir, "db")); os.IsNotExist(err) {
+			//Create Folder
+			iohelper.CreateFolder(filepath.Join(dir, "db"), 777)
+			//Create Namespace File
+			f1, _ := os.Create(filepath.Join(dir, "db", "namespaces.json"))
+			defer f1.Close()
+			u := []namespacehelper.Namespace{{Name: "문서", NamespaceACL: aclhelper.ACLNamespace{AclEdit: "admin", Edit: "ip", Watch: "ip", Create: "ip", Delete: "user"}}}
+			enc1 := json.NewEncoder(f1)
+			enc1.SetIndent("", "  ")
+			_ = enc1.Encode(u)
+			//Create ACL File
+			f2, _ := os.Create(filepath.Join(dir, "db", "acl.json"))
+			defer f2.Close()
+			ua := []aclhelper.ACLRole{{Name: "admin", Include: []string{"ip", "user"}}, {Name: "user", Include: []string{"ip"}}, {Name: "ip", Include: []string{}}}
+			enc2 := json.NewEncoder(f2)
+			enc2.SetIndent("", "  ")
+			_ = enc2.Encode(ua)
+			//Create User File
+			f3, _ := os.Create(filepath.Join(dir, "db", "user.json"))
+			defer f3.Close()
+			uaa := []userhelper.User{{Acl: "admin", PasswordHashed: sha3.Sum512([]byte("openngo")), Name: "admin", Uid: ksuid.New().String()}}
+			enc3 := json.NewEncoder(f3)
+			enc3.SetIndent("", "  ")
+			_ = enc3.Encode(uaa)
+		}
+		if _, err := os.Stat(filepath.Join(dir, "db", "old")); os.IsNotExist(err) {
+			//Create Folder
+			iohelper.CreateFolder(filepath.Join(dir, "db", "old"), 777)
+		}
+		if _, err := os.Stat(filepath.Join(dir, "theme")); os.IsNotExist(err) {
+			//Create Folder
+			iohelper.CreateFolder(filepath.Join(dir, "theme"), 777)
+		}*/
 }
 
-func InitData()  {
-	result := mongohelper.Database.Collection("user").FindOne(context.TODO(), bson.M{"name":"admin"})
-	if result.Err() != nil{
-		_, err := mongohelper.Database.Collection("user").InsertOne(context.TODO(), userhelper.User{Acl: "admin", PasswordHashed: sha3.Sum512([]byte("openngo")), Name: "admin", Uid: ksuid.New().String()})
-		iohelper.ErrLog(err)
-		_, err = mongohelper.Database.Collection("acl").InsertMany(context.TODO(), []interface{}{aclhelper.ACLRole{Name: "admin", Include: []string{"ip", "user"}}, aclhelper.ACLRole{Name: "user", Include: []string{"ip"}}, aclhelper.ACLRole{Name: "ip", Include: []string{}}})
-		iohelper.ErrLog(err)
-		_, err = mongohelper.Database.Collection("namespace").InsertOne(context.TODO(), namespacehelper.Namespace{Name: "문서", NamespaceACL: aclhelper.ACLNamespace{AclEdit: "admin", Edit: "ip", Watch: "ip", Create: "ip", Delete: "user"}})
-		iohelper.ErrLog(err)
-	}
+func InitData() {
+	iohelper.ErrFatal(databasehelper.Dao.InitData())
 }
+
 //Read settings with section and key
 func ReadSetting(section string, key string) *ini.Key {
 	return Setting.Section(section).Key(key)

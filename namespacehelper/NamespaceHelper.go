@@ -1,35 +1,25 @@
 package namespacehelper
 
 import (
-	"context"
-	"github.com/devngho/openN-Go/aclhelper"
+	"github.com/devngho/openN-Go/databasehelper"
 	"github.com/devngho/openN-Go/iohelper"
-	"github.com/devngho/openN-Go/mongohelper"
-	"go.mongodb.org/mongo-driver/bson"
+	"github.com/devngho/openN-Go/types"
 	"os"
 )
 
-var Namespaces []Namespace
-type Namespace struct {
-	Name         string        `json:"name"`
-	NamespaceACL aclhelper.ACLNamespace `json:"acl"`
+var Namespaces []types.Namespace
+
+func ReadNamespaces() {
+	data, err := databasehelper.Dao.ReadNamespaces()
+	iohelper.ErrFatal(err)
+	Namespaces = data
 }
 
-func ReadNamespaces()  {
-	var results []Namespace // Use your own type here, but this works too
-
-	cur, err := mongohelper.Database.Collection("namespace").Find(context.TODO(), bson.D{})
-	iohelper.ErrLog(err)
-	err = cur.All(context.TODO(), &results)
-	iohelper.ErrLog(err)
-	Namespaces = results
-}
-
-func Find(NamespaceName string) (Namespace, error) {
-	for _, e := range Namespaces{
-		if e.Name == NamespaceName{
+func Find(NamespaceName string) (types.Namespace, error) {
+	for _, e := range Namespaces {
+		if e.Name == NamespaceName {
 			return e, nil
 		}
 	}
-	return Namespace{}, os.ErrNotExist
+	return types.Namespace{}, os.ErrNotExist
 }
