@@ -4,7 +4,6 @@ import (
 	"github.com/devngho/openN-Go/aclhelper"
 	"github.com/devngho/openN-Go/databasehelper"
 	"github.com/devngho/openN-Go/markdownhelper"
-	"github.com/devngho/openN-Go/multithreadinghelper"
 	"github.com/devngho/openN-Go/namespacehelper"
 	"github.com/devngho/openN-Go/router"
 	"github.com/devngho/openN-Go/settinghelper"
