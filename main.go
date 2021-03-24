@@ -24,7 +24,6 @@ func main() {
 	themehelper.InitStatic()
 	namespacehelper.ReadNamespaces()
 	aclhelper.AclLoad()
-	multithreadinghelper.InitGoroutine()
 	userhelper.Load()
 	markdownhelper.SetParser()
 	r := gin.Default()

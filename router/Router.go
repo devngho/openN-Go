@@ -3,7 +3,9 @@ package router
 import (
 	"fmt"
 	"github.com/devngho/openN-Go/aclhelper"
-	"github.com/devngho/openN-Go/multithreadinghelper"
+	"github.com/devngho/openN-Go/documenthelper"
+	"github.com/devngho/openN-Go/iohelper"
+	"github.com/devngho/openN-Go/markdownhelper"
 	"github.com/devngho/openN-Go/namespacehelper"
 	"github.com/devngho/openN-Go/settinghelper"
 	"github.com/devngho/openN-Go/themehelper"
@@ -16,7 +18,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 )
 
 func OnRequest(c *gin.Context, reqType int8) {
@@ -58,13 +59,32 @@ func OnRequest(c *gin.Context, reqType int8) {
 		}
 
 		//Document Read
-		var res [2]string
-		var statusCode int
-		var waitGroup sync.WaitGroup
-		waitGroup.Add(1)
-		multithreadinghelper.DocumentReadRequests <- &multithreadinghelper.DocumentReadRequest{Name: DocumentName, Namespace: ns.Name, Result: &res, StatusCode: &statusCode, WaitChannel: &waitGroup, Acl: acl}
-		waitGroup.Wait()
-		c.Data(statusCode, res[0], []byte(res[1]))
+		doc, err := documenthelper.Read(ns.Name, DocumentName)
+		if err != nil {
+			docHtml := themehelper.NotFoundDocumentHtml
+			docHtml = strings.ReplaceAll(docHtml, "${namespace}", ns.Name)
+			docHtml = strings.ReplaceAll(docHtml, "${name}", DocumentName)
+			c.Data(http.StatusNotFound, "text/html; charset=utf-8", []byte(docHtml))
+		} else {
+			//Document Render
+			if aclhelper.AclAllow(acl, doc.Acl.Watch) {
+				doc.Text = markdownhelper.ToHTML(doc.Text)
+				docHtml := themehelper.DocumentHtml
+				docHtml = strings.ReplaceAll(docHtml, "${namespace}", doc.Namespace)
+				docHtml = strings.ReplaceAll(docHtml, "${name}", doc.Name)
+				docHtml = strings.ReplaceAll(docHtml, "${text}", doc.Text)
+				docHtml = strings.ReplaceAll(docHtml, "${fname}", fmt.Sprintf("%s:%s", ns.Name, DocumentName))
+				c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(docHtml))
+			} else {
+				docHtml := themehelper.DocumentAclBlockHtml
+				docHtml = strings.ReplaceAll(docHtml, "${namespace}", doc.Namespace)
+				docHtml = strings.ReplaceAll(docHtml, "${name}", doc.Name)
+				docHtml = strings.ReplaceAll(docHtml, "${watchacl}", doc.Acl.Watch)
+				docHtml = strings.ReplaceAll(docHtml, "${editacl}", doc.Acl.Edit)
+				docHtml = strings.ReplaceAll(docHtml, "${editaclacl}", doc.Acl.AclEdit)
+				c.Data(http.StatusForbidden, "text/html; charset=utf-8", []byte(docHtml))
+			}
+		}
 	case types.LoginPost:
 		id := c.PostForm("id")
 		pwd := c.PostForm("password")
@@ -122,16 +142,25 @@ func OnRequest(c *gin.Context, reqType int8) {
 			creator = usr.Name
 		}
 
-		var res [2]string
-		var statusCode int
-		var waitGroup sync.WaitGroup
-		waitGroup.Add(1)
-		multithreadinghelper.DocumentCreateRequests <- &multithreadinghelper.DocumentCreateRequest{Name: DocumentName, Namespace: ns, Result: &res, StatusCode: &statusCode, WaitChannel: &waitGroup, Acl: acl, UserName: creator}
-		waitGroup.Wait()
-		if statusCode == http.StatusFound {
-			c.Redirect(302, res[1])
+		has, err := documenthelper.HasDocument(ns.Name, DocumentName)
+		iohelper.ErrLog(err)
+		if !has {
+			if aclhelper.AclAllow(acl, ns.NamespaceACL.Create) {
+				_, _ = documenthelper.Create(ns.Name, DocumentName, creator)
+				c.Redirect(http.StatusFound, fmt.Sprintf("/w/%s:%s", ns.Name, DocumentName))
+			} else {
+				docHtml := themehelper.DocumentAclBlockHtml
+				docHtml = strings.ReplaceAll(docHtml, "${namespace}", ns.Name)
+				docHtml = strings.ReplaceAll(docHtml, "${name}", DocumentName)
+				docHtml = strings.ReplaceAll(docHtml, "${watchacl}", ns.NamespaceACL.Watch)
+				docHtml = strings.ReplaceAll(docHtml, "${editacl}", ns.NamespaceACL.Edit)
+				docHtml = strings.ReplaceAll(docHtml, "${editaclacl}", ns.NamespaceACL.AclEdit)
+				c.Data(http.StatusForbidden, "text/html; charset=utf-8", []byte(docHtml))
+			}
 		} else {
-			c.Data(statusCode, res[0], []byte(res[1]))
+			docHtml := themehelper.ErrorHtml
+			docHtml = strings.ReplaceAll(docHtml, "${error}", "DOCUMENT_ALREADY_EXISTS")
+			c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(docHtml))
 		}
 	}
 }
