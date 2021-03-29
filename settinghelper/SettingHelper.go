@@ -1,12 +1,13 @@
 package settinghelper
 
 import (
-	"github.com/devngho/openN-Go/databasehelper"
-	"github.com/devngho/openN-Go/iohelper"
-	"gopkg.in/ini.v1"
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/devngho/openN-Go/databasehelper"
+	"github.com/devngho/openN-Go/iohelper"
+	"gopkg.in/ini.v1"
 )
 
 var Setting *ini.File
@@ -50,6 +51,8 @@ func InitFolderFile() {
 			cfg.Section("db").Key("type").MustString("mongodb")
 			cfg.Section("db").Key("server").MustString("mongodb://localhost:27017")
 			cfg.Section("db").Key("setting").MustString("wiki")
+			_, _ = cfg.NewSection("screct")
+			cfg.Section("screct").Key("key").MustString("SCRECT")
 			_ = cfg.SaveTo(filepath.Join(dir, "setting.ini"))
 		} else {
 			log.Fatal(err)

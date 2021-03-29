@@ -8,6 +8,7 @@ import (
 	"github.com/devngho/openN-Go/router"
 	"github.com/devngho/openN-Go/settinghelper"
 	"github.com/devngho/openN-Go/themehelper"
+	"github.com/devngho/openN-Go/types"
 	"github.com/devngho/openN-Go/userhelper"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -25,10 +26,12 @@ func main() {
 	aclhelper.AclLoad()
 	userhelper.Load()
 	markdownhelper.SetParser()
+	types.Screct = settinghelper.ReadSetting("screct", "key").String()
+	types.ScrectByte = []byte(types.Screct)
 	r := gin.Default()
 
 	//Boot server
-	r.Use(sessions.Sessions("login", sessions.NewCookieStore([]byte(settinghelper.ReadSetting("secret", "key").String()))))
+	r.Use(sessions.Sessions("login", sessions.NewCookieStore([]byte(types.Screct))))
 	router.Setup(r, settinghelper.ReadSetting("wiki", "name").String(), settinghelper.ReadSetting("wiki", "start_page").String())
 	r.Run(":80")
 }
