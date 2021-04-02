@@ -46,6 +46,7 @@ func InitFolderFile() {
 			cfg.Section("wiki").Key("start_page").MustString("대문")
 			cfg.Section("wiki").Key("use_markdown").MustBool(true)
 			cfg.Section("wiki").Key("markdown").MustString("example")
+			cfg.Section("wiki").Key("use_only_api").MustBool(false)
 			_, _ = cfg.NewSection("db")
 			cfg.Section("db").Key("type").MustString("mongodb")
 			cfg.Section("db").Key("server").MustString("mongodb://localhost:27017")
