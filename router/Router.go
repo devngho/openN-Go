@@ -1,7 +1,14 @@
 package router
 
 import (
+	"encoding/hex"
 	"fmt"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/devngho/openN-Go/aclhelper"
 	"github.com/devngho/openN-Go/documenthelper"
 	"github.com/devngho/openN-Go/iohelper"
@@ -13,11 +20,9 @@ import (
 	"github.com/devngho/openN-Go/userhelper"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+
+	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/sha3"
-	"net/http"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 func OnRequest(c *gin.Context, reqType int8) {
@@ -217,6 +222,35 @@ func Setup(r *gin.Engine, wikiName string, mainPage string) {
 		namespacehelper.ReadNamespaces()
 		aclhelper.AclLoad()
 		context.String(http.StatusOK, "RELOAD COMPLETED")
+	})
+	r.GET("/api/token", func(context *gin.Context) {
+		var pwd [128]byte
+		var hex_pwd [64]byte
+		copy(pwd[:], []byte(context.Query("pwd_hashed")))
+		hex.Decode(hex_pwd[:], pwd[:])
+
+		usr, err := userhelper.FindUserWithNamePwd(context.Query("usr_name"), hex_pwd)
+		if err == nil {
+			expirationTime := time.Now().Add(types.ExpirationTime)
+			clams := jwt.MapClaims{}
+			clams["exp"] = expirationTime
+			clams["uid"] = usr.Uid
+			// Create the JWT string
+			token := jwt.NewWithClaims(jwt.SigningMethodHS256, clams)
+			token_string, err := token.SignedString(types.ScrectByte)
+			if err != nil {
+				fmt.Println(err)
+				context.JSON(http.StatusInternalServerError, gin.H{"error": "unknown"})
+			} else {
+				context.JSON(http.StatusOK, gin.H{"token": token_string})
+			}
+		} else {
+			fmt.Println(err)
+			context.JSON(http.StatusNotFound, gin.H{"error": "can't find user"})
+		}
+	})
+	r.GET("/api/get/:document", func(context *gin.Context) {
+
 	})
 	r.POST("/new/:document", func(context *gin.Context) {
 		OnRequest(context, types.NewDocument)

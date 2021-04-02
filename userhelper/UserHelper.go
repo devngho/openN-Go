@@ -1,12 +1,13 @@
 package userhelper
 
 import (
+	"os"
+
 	"github.com/devngho/openN-Go/databasehelper"
 	"github.com/devngho/openN-Go/iohelper"
 	"github.com/devngho/openN-Go/types"
 	"github.com/segmentio/ksuid"
 	"golang.org/x/crypto/openpgp/errors"
-	"os"
 )
 
 var Users []types.User

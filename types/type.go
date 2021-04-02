@@ -1,5 +1,7 @@
 package types
 
+import "time"
+
 //Document
 
 type Document struct {
@@ -86,3 +88,9 @@ const NewDocument = 5
 const DeleteDocument = 6
 const EditAclDocument = 7
 const LoginPost = 8
+const ExpirationTime = time.Duration(30) * time.Minute
+
+//Setting Caching
+
+var Screct string
+var ScrectByte []byte
